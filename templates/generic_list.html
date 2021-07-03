@@ -1,0 +1,88 @@
+{% extends 'body.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" />
+<link rel="stylesheet"
+    href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}" />
+<script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
+
+{% block head_list %}
+
+{% endblock %}
+
+{% endblock %}
+
+{% block content %}
+<div class="card card-primary">
+    <div class="card-header text-right">
+        {% if request.user.username%}
+        {% block buttons_list %}
+
+        {% endblock %}
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered" id="data">
+            <thead>
+                {% block columns %}
+
+                {% endblock %}
+            </thead>
+            <tbody>
+                {% block rows %}
+
+                {% endblock %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+       
+    </div>
+</div>
+<div class="modal fade" id="modalGeneric" tabindex="-1" role="dialog" aria-labelledby="modalGeneric" aria-hidden="true">
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+
+<script type="application/javascript">
+    function modal_generic(url) {
+        $('#modalGeneric').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+</script>
+<script type="application/javascript">
+    $(function () {
+        $('#data').DataTable({
+            responsive: true,
+            autoWidth: false,
+            ordering: true,
+            "pageLength": 8,
+            "order": [[0, 'desc'],],
+        });
+    });
+
+    /*$('.btnTest').on('click', function () {
+        var parameters = $(this).serializeArray();
+        console.log("Parametros: ", parameters);
+        alert("Parametros: ", parameters)
+        $.ajax({
+            url: '{% url 'home' %}',
+            type: 'POST',
+            data: { id: 11 },
+            dataType: 'json'
+        }).done(function (data) {
+            console.log(data);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(textStatus + ': ' + errorThrown);
+        }).always(function (data) {
+
+        });
+    });*/
+</script>
+{% endblock %}

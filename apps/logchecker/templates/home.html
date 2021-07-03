@@ -1,0 +1,73 @@
+{% extends "body.html" %}
+{% load static %}
+{% block head %}
+<link href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet" />
+<link href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}"
+    rel="stylesheet" />
+<script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
+
+{% block head_list %}
+
+{% endblock %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card card-primary mt-4">
+        <div class="card-header text-left bg-dark text-light pt-1 pb-0">
+            <h5>Districs Table</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered" id="data">
+                <thead>
+                    <tr>
+                        <th>District</th>
+                        <th>PSID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dist in districs %}
+                    <tr class="text-center">
+                        <td class="text-left">{{ dist.name }}</td>
+                        <td class="text-center">{{ dist.psid }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- <div class="card-footer">
+
+        </div> -->
+    </div>
+</div>
+
+<div aria-hidden="true" aria-labelledby="modalGeneric" class="modal fade" id="modalGeneric" role="dialog" tabindex="-1">
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+
+<script type="application/javascript">
+    function modal_generic(url) {
+        $('#modalGeneric').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+</script>
+<script type="application/javascript">
+    $(document).ready( function() {
+        $('#data').dataTable({
+            responsive: true,
+            autoWidth: false,
+            ordering: true,
+            "pageLength": 8,
+            "bDestroy": true
+        });
+    });
+</script>
+{% endblock %}
