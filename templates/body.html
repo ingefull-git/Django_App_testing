@@ -1,31 +1,19 @@
 {% extends 'base.html' %}
 {% block head %}
-{% endblock %}
+{% endblock head %}
 {% block body %}
 <body class="hold-transition sidebar-mini layout-fixed">
-    <div class="wrapper">
+   
         <!-- Header -->
         {% include 'header.html' %}
         <!-- Sidebar -->
         {% include 'sidebar.html' %}
         <!-- Content -->
-        <div class="content-wrapper">
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-6">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="content">
-                <div class="container-fluid">
-                    {% block content %}
+    <div class="wrapper">
+        
+        {% block content %}
+        {% endblock content %}
 
-                    {% endblock %}
-                </div>
-            </div>
-        </div>
         <!-- Footer -->
         {% include 'footer.html' %}
     </div>
@@ -48,4 +36,4 @@
         {% endif %}
     </script>
 </body>
-{% endblock %}
+{% endblock body %}

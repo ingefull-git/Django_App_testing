@@ -1,54 +1,192 @@
-{% extends 'body.html' %}
+{% extends "body.html" %}
 {% load static %}
 {% block head %}
-<link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" />
-<link rel="stylesheet"
-    href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}" />
-<script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
 
-{% block head_list %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.min.css">
 
-{% endblock %}
+<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
 
-{% endblock %}
+<script type="text/javascript" language="javascript"
+    src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript"
+    src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.min.js"></script>
 
-{% block content %}
-<div class="card card-primary">
-    <div class="card-header text-right">
-        {% if request.user.username%}
-        {% block buttons_list %}
+{% endblock head %}
 
-        {% endblock %}
-        {% endif %}
+
+
+{% block content %}<div class="container-fluid">
+{% block title %}
+{% endblock title %}
+    <div class="row">
+        <div class="col-md-5">
+            <div class="row">
+                <div class="col">
+                    <div class="card card-primary mt-4">
+                        <div class="card-header text-left bg-secondary text-light pt-1 pb-0">
+                            <h5>Districs Table</h5>
+                        </div>
+                        <div class="card-body card_chart">
+                            {% block chart %}
+                            {% endblock chart %}
+                        </div>
+                        <div class="card-footer">
+                            <p>This is footer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="card card-primary mt-4">
+                        <div class="card-header text-left bg-info text-light pt-1 pb-0">
+                            <h5>Districs Table</h5>
+                        </div>
+                        <div class="card-body">
+                            <a href="{% url 'logchecker:readlog' 1111 %}">Read Log</a>
+                            <a href="{% url 'logchecker:readlog' 1122 %}"class="ml-5">Read Log</a>
+                            {% block chart1 %}
+                            {% endblock chart1 %}
+                        </div>
+                        <div class="card-footer">
+                            <p>This is footer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="row">
+                <div class="col-12">
+                    <div class="row row-cols-1 row-cols-md-4">
+                        {% for key, val in servers.items %}
+                        <div class="col ml-0 mr-0 mt-0">
+                            <div class="card mt-4">
+                                <div class="card-header bg-secondary text-light">
+                                    Server# {{ key }}
+                                </div>
+                                <div class="card-body server_modal">
+                                    <div class="row">
+                                        <div class="col-6 mt-0">
+                                            <small>Status</small>
+                                        </div>
+                                        <div class="col-6 mt-0 d-flex justify-content-end">
+                                            <small class="text-right"># Districts</small>
+                                        </div>
+                                    </div>
+                                    <span class="form-control server_span">
+                                        <canvas id="server{{ key }}" width="100" height="100"></canvas>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="card card-primary mt-4">
+                        <div class="card-header text-left bg-light pt-1 pb-0">
+                            {% block cardheader %}
+                            {% endblock cardheader %}
+                        </div>
+                        <div class="card-body card_table h-100">
+                            <table class="table table-sm table-hover table-responsive" id="data">
+                                {% block thead %}
+                                {% endblock thead %}
+        
+                                {% block tbody %}
+                                {% endblock tbody %}
+                            </table>
+                        </div>
+                        <div class="card-footer">
+                            {% block card_footer %}
+                            {% endblock card_footer %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-bordered" id="data">
-            <thead>
-                {% block columns %}
+</div>
 
-                {% endblock %}
-            </thead>
-            <tbody>
-                {% block rows %}
+<div class="modal fade" aria-hidden="true" aria-labelledby="modalGeneric" id="modalGeneric" role="dialog" tabindex="-1">
+</div>
 
-                {% endblock %}
-            </tbody>
-        </table>
-    </div>
-    <div class="card-footer">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1/dist/chart.min.js"></script>
+
+<script>
+   
+    function refresh_home() {
+        console.log("Refresh..!!!");
+        $.ajax({
+            url:'/',
+            type: 'POST',
+            data: {
+                'action': 123,
+            },
+            success: function (data) {
+                console.log("New item created...!!!", data)
        
-    </div>
-</div>
-<div class="modal fade" id="modalGeneric" tabindex="-1" role="dialog" aria-labelledby="modalGeneric" aria-hidden="true">
-</div>
+           },
+            error: function(){
+            alert("failure");
+            }
+       });
+       districts_list();
+      };
 
-{% endblock %}
-
-{% block javascript %}
-
+    {% comment %} function districts_list(){
+       console.log("Distric List..!!!")
+        $('#data').DataTable({
+            responsive: true,
+            autoWidth: false,
+            destroy: true,
+            deferRender: true,
+            "lengthMenu": [ 5, ],
+            "lengthChange": false,
+            "pageLength": 5,
+            scrollY: "200px",
+            ajax: {
+                url: window.location.pathname,
+                type: 'POST',
+                data: {
+                    'test': 'testdata',
+                    
+                },
+                datatype: 'json',
+                dataSrc: "",
+                mdDataProp: ""
+            },
+            aoColumns: [
+                {"data": "psid"},
+                {"data": "name"},
+                {"data": "status"},
+                {"data": "status"},
+            ],
+            columnDefs: [
+            {
+                targets: [0],
+                "visible": true,
+                "searchable": false
+            },
+            {
+                targets: [-1],
+                class: 'text-center',
+                orderable: false,
+                render: function (data, type, row) {
+                    return '<button id="refresh" onclick=refresh_home() class="btn btn-sm btn-primary">Refresh</button>';
+                }
+            },
+        ],
+    });
+}; {% endcomment %}
+$(document).ready(function (){
+    districts_list();
+});
+</script>
 <script type="application/javascript">
     function modal_generic(url) {
         $('#modalGeneric').load(url, function () {
@@ -56,33 +194,9 @@
         });
     };
 </script>
-<script type="application/javascript">
-    $(function () {
-        $('#data').DataTable({
-            responsive: true,
-            autoWidth: false,
-            ordering: true,
-            "pageLength": 8,
-            "order": [[0, 'desc'],],
-        });
-    });
 
-    /*$('.btnTest').on('click', function () {
-        var parameters = $(this).serializeArray();
-        console.log("Parametros: ", parameters);
-        alert("Parametros: ", parameters)
-        $.ajax({
-            url: '{% url 'home' %}',
-            type: 'POST',
-            data: { id: 11 },
-            dataType: 'json'
-        }).done(function (data) {
-            console.log(data);
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(textStatus + ': ' + errorThrown);
-        }).always(function (data) {
 
-        });
-    });*/
-</script>
-{% endblock %}
+{% block js %}
+{% endblock js %}
+
+{% endblock content %}

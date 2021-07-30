@@ -1,0 +1,56 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="myModal" tabindex="-1">
+	<div class="modal-content">
+		<div class="modal-header">
+			<h1 class="modal-title titulo-pagina" id="ModalTitulo">
+				{{ modal_title }}
+			</h1>
+			<button type="button" class="btn btn-close btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+		</div>
+		<div class="modal-body">
+
+			{% with template_name=template|stringformat:"s" %}
+			{% include ""|add:template_name %}
+			{% endwith %}
+
+		</div>
+	</div>
+</div>
+
+{% block script %}
+
+{% endblock %}
+
+<script>
+	$(function () {
+        var url = $("#myForm").attr('action');
+        var token = jQuery("[name = csrfmiddlewaretoken]").val();
+
+        $("#myForm").submit(function (e) {
+            e.preventDefault(e);
+            $('.error_form_text').html("")
+            $('.error_form_alert').fadeOut();
+            var formData = $("form").serializeArray();
+            $.ajax({
+                url: url,
+                method: "POST",
+                headers: { 'X-CSRFToken': token },
+                data: formData
+            })
+			.done(function (r, textStatus, xhr) {
+				if (xhr.status == 200) {
+					location.reload(true);
+				}
+				else {
+					console.log("Funcion .done pero no status=200")
+				}
+			})
+			.fail(function (data) {
+				$('.error_form_alert').fadeIn();
+				$.each(data.responseJSON.error, function (k, v) {
+					$('.error_form_alert').fadeIn();
+					$('.error_form_text').append($('<span>').append("<b>" + v[0] + ": </b>" + v[1] +"<br>"));
+				});
+			})
+        });
+    });
+</script>

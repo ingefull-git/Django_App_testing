@@ -64,7 +64,7 @@ def test_new_user01(new_user):
 
 def test_new_user02(new_user2):
     user = new_user2
-    print(user.id, " + ", user.username, " + ", user.first_name, " + ", user.password)
+    print(user.psid, " + ", user.username, " + ", user.first_name, " + ", user.password)
     assert True
 
 def test_district_01(new_district):

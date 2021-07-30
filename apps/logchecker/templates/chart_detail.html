@@ -1,0 +1,31 @@
+<div class="card card-primary mt-4">
+    <div class="card-header text-left bg-dark text-light pt-1 pb-0">
+        <h5>Districs Table</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover table-striped table-responsive" id="data">
+            <thead>
+                <tr>
+                    <th>District</th>
+                    <th class="text-center">PSID</th>
+                    <th  class="text-center">Server</th>
+                    <th  class="text-center"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dist in content %}
+                <tr>
+                    <td class="text-left">{{ dist.name }}</td>
+                    <td class="text-center">{{ dist.psid }}</td>
+                    <td class="text-center">{{ dist.server }}</td>
+                    <td class="text-center"><a href="#" onclick="modal_generic('{% url 'logchecker:district_update' dist.psid %}')" class="btn btn-sm btn-primary">Update</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <p>This is footer</p>
+    </div>
+</div>
