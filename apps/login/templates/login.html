@@ -1,0 +1,44 @@
+{% extends "body.html" %}
+{% load static %}
+
+{% load account %}
+
+{% user_display user %}
+
+{% load socialaccount %}
+{% load i18n %}
+
+{% block content %}
+
+<div class="container">
+        <div class="row mt-5">
+            <div class="col-md-4 offset-md-4">
+                <div class="card bg-light mt-5 p-4 login-card">
+                    <form action="." method="POST" class="row g-3">
+                        <h4>Welcome to BB Dashboard</h4>
+                        {% csrf_token %}
+                        {% if login_errors %}
+                        <div class="alert alert-danger mt-3 mb-3" role="alert">
+                            {{ login_errors }}
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <label>Username</label>
+                            <input type="text" name="username" class="form-control" placeholder="Username..">
+                        </div>
+                        <div class="col-12">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="Password..">
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary form-control">Login</button>
+                        </div>
+                        <div class="col-12 mt-3">
+                              <a href="{% provider_login_url 'google' %}" class="btn btn-danger form-control" aria-pressed="true">Sign in with Google</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

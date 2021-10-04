@@ -20,20 +20,20 @@
 {% endblock title %}
 
 {% block chart %}
-    <canvas id="myChart" width="350" height="350"></canvas>
+    <canvas id="myChart" data-url="{% url 'logchecker:pie_chart' %}" width="350" height="350"></canvas>
 {% endblock chart %}
 
 {% block cardheader %}
 <div class="row">
     <div class="col-sm-6">
-        <h5>Districs Table</h5>
     </div>
     <div class="col-sm-6">
-        <form action="." class="form-inline">
+        <form action="{% url 'logchecker:home' %}" class="form-inline" id="searchform">
+        {% csrf_token %}
             <div class="row pt-3 pb-3 pe-3 ps-3">
                 <div class="input-group">
-                    <button class="btn btn-outline-primary input-group-text">Search</button>
-                    <input type="search" class="form-control" id="search_input" name="search_" placeholder="Search field...">
+                    <button class="btn btn-outline-secondary input-group-text" type="submit">Search</button>
+                    <input type="search" class="form-control" id="id_search" name="id_search" placeholder="Search field...">
                 </div>
             </div>
         </form>
@@ -54,129 +54,252 @@
 {% endblock thead %}
 
 {% block tbody %}
-<tbody>
-    {% for dist in page_obj %}
-        <tr>
-            <td>{{ forloop.counter0 }}</td>
-            <td>{{ dist.name }}</td>
-            <td>{{ dist.psid }}</td>
-            <td>{{ dist.status }}</td>
-            <td> <a href="{% url 'logchecker:readlog' dist.psid %}" class="btn btn-primary btn-sm" >Update</a> </td>
-        </tr>
-    {% endfor %}
+<tbody id="tablebody" name="tablebody">
+   
 </tbody>
 {% endblock tbody %}
 
 {% block card_footer %}
 <div class="d-flex justify-content-end">
-<div class="btn-group" role="group">
-    {% if page_obj.has_previous %}
+    <div class="btn-group" role="group">
+        {% if page_obj.has_previous %}
         <a href="?page=1" class="btn btn-outline-secondary btn-sm btn_paginate">First</a>
-        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-secondary btn-sm btn_paginate">&laquo;</a>
-    {% else %}
+        <a href="?page={{ page_obj.previous_page_number }}"
+            class="btn btn-outline-secondary btn-sm btn_paginate">&laquo;</a>
+        {% else %}
         <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">First</a>
         <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">&laquo;</a>
-    {% endif %}
+        {% endif %}
 
-    {% for num in page_obj.paginator.page_range %}
-    {% if page_obj.number == num %}
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
         <a href="?page={{ num }}" class="btn btn-outline-primary btn-sm btn_paginate"><strong>{{ num }}</strong></a>
-    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
         <a href="?page={{ num }}" class="btn btn-outline-secondary btn-sm btn_paginate">{{ num }}</a>
-    {% endif %}
-    {% endfor %}
+        {% endif %}
+        {% endfor %}
 
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-secondary btn-sm btn_paginate">&raquo;</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline-secondary btn-sm btn_paginate">Last</a>
-    {% else %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}"
+            class="btn btn-outline-secondary btn-sm btn_paginate">&raquo;</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}"
+            class="btn btn-outline-secondary btn-sm btn_paginate">Last</a>
+        {% else %}
         <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">&raquo;</a>
         <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">Last</a>
-    {% endif %}
-</div>
-  
-
-    
+        {% endif %}
+    </div>
 </div>
 {% endblock card_footer %}
 
+{% block chart-stacked %}
+    <canvas id="stackedChart" data-url="{% url 'logchecker:pie_chart' %}" width="350" height="350"></canvas>
+    <canvas id="histoChart" data-url="{% url 'logchecker:pie_chart' %}" width="350" height="350"></canvas>
+{% endblock chart-stacked %}
+
 {% block js %}
+
+<script src="{% static 'js/scripts.js' %}"></script>
 <script>
-    let canvas = document.getElementById("myChart");
-    let ctx = canvas.getContext('2d');
-    let myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: {{chart_labels | safe}},
-            datasets: [{
-                data: {{ chart_values | safe }},
-                backgroundColor: [
-                    '#FF474B',
-                    '#FEE043',
-                    '#649CB8',
-                    '#58AB51',
-                        ],
-                borderWidth: 1
-            }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-        }
-    });
-
-    canvas.onclick = function(evt) {
-        let activePoints = myChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-        if (activePoints.length){
-            activePoints.forEach((p) => {
-                let label = myChart.data.labels[p.index];
-                let value = myChart.data.datasets[p.datasetIndex].data[p.index];
-                console.log(`label: _[${label}]_, value: [${value}] cant`);
-                let url = "http://127.0.0.1:8000/chart_detail/" + label + "/";
-                console.log(url);
-                modal_generic(url);
-                
-                // alert(url);
-            })
-        };
-        
-    };
-
-    {% for key, val in servers.items %}
-      
-    new Chart(document.getElementById("server{{key}}").getContext("2d"), {
-        type: 'bar',
-        data: {
-            labels: {{chart_labels | safe}},
-            datasets: [{
-                    backgroundColor: [
-                    '#FF474B',
-                    '#FEE043',
-                    '#649CB8',
-                    '#58AB51',
-                        ],
-                    data: {{val | safe}},
-                },
-            ]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: false,
-                    position: 'top',
-                  },
-                  
-            },
-            scales:{
-                x: {
-                    display: false
-                }
-            },
-            responsive: true,
-            maintainAspectRatio: false,
-        }
-    });
+    {% for res in histo_val.items %}
+    {% if res.0 == "error" %}
+        var labelError = "{{ res.0 | safe}}";
+        var dataError = {{ res.1 | safe}};
+    {% elif res.0 == "warning" %}
+        var labelWarning = "{{ res.0 | safe}}";
+        var dataWarning = {{ res.1 | safe}};
+    {% elif res.0 == "undefined" %}
+        var labelUndefined = "{{ res.0 | safe}}";
+        var dataUndefined = {{ res.1 | safe}};
+    {% elif res.0 == "ok" %}
+        var labelOk = "{{ res.0 | safe}}";
+        var dataOk = {{ res.1 | safe}};
+    {% endif %}
     {% endfor %}
-   
+    var ctx = document.getElementById('histoChart').getContext('2d');
+var histoChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ histo_label | safe }},
+        datasets: [
+            {label: labelOk, data: dataOk, borderColor: 'green', backgroundColor: 'lightGreen', fill: true,},
+            {label: labelUndefined, data: dataUndefined, borderColor: 'blue', backgroundColor: 'lightBlue', fill: false,},
+            {label: labelWarning, data: dataWarning, borderColor: 'orange', backgroundColor: 'lightYellow', fill: false,},
+            {label: labelError, data: dataError, borderColor: 'red', backgroundColor: 'pink', fill: true,},
+            ]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
 </script>
+<script>
+    {% for res in result.items %}
+    {% if res.0 == "error" %}
+        var labelError = "{{ res.0 | safe}}";
+        var dataError = {{ res.1 | safe}};
+    {% elif res.0 == "warning" %}
+        var labelWarning = "{{ res.0 | safe}}";
+        var dataWarning = {{ res.1 | safe}};
+    {% elif res.0 == "undefined" %}
+        var labelUndefined = "{{ res.0 | safe}}";
+        var dataUndefined = {{ res.1 | safe}};
+    {% elif res.0 == "ok" %}
+        var labelOk = "{{ res.0 | safe}}";
+        var dataOk = {{ res.1 | safe}};
+    {% endif %}
+    {% endfor %}
+    var ctx = document.getElementById('stackedChart').getContext('2d');
+var stackedChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ stacked_label | safe }},
+        datasets: [{
+            label: labelError,
+            data: dataError,
+            backgroundColor: [
+                'orange',
+                'orange',
+                'orange',
+                'orange',
+                'orange',
+                'orange'
+            ],
+            
+            borderWidth: 1,
+        },
+        {
+            label: labelWarning,
+            data: dataWarning,
+            backgroundColor: [
+                'yellow',
+                'yellow',
+                'yellow',
+                'yellow',
+                'yellow',
+                'yellow'
+            ],
+           
+            borderWidth: 1,
+        },
+        {
+            label: labelUndefined,
+            data: dataUndefined,
+            backgroundColor: [
+                'lightblue',
+                'lightblue',
+                'lightblue',
+                'lightblue',
+                'lightblue',
+                'lightblue'
+            ],
+           
+            borderWidth: 1,
+        },
+        {
+            label: labelOk,
+            data: dataOk,
+            backgroundColor: [
+                'lightgreen',
+                'lightgreen',
+                'lightgreen',
+                'lightgreen',
+                'lightgreen',
+                'lightgreen'
+            ],
+           
+            borderWidth: 1,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        scales: {
+            x: {
+                stacked: true
+            },
+            y: {
+                stacked: true
+            }
+        }
+    }
+});
+</script>
+
+
+<script>
+{% for key,val in servers.items %}
+
+new Chart(document.getElementById("server{{key}}").getContext("2d"), {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels | safe }},
+        datasets: [{
+            backgroundColor: [
+                '#FF474B',
+                '#FEE043',
+                '#649CB8',
+                '#58AB51',
+            ],
+            data: {{ val | safe }},
+        }, ]
+    },
+    options: {
+        plugins: {
+            legend: {
+                display: false,
+                position: 'top',
+            },
+
+        },
+        scales: {
+            x: {
+                display: false
+            }
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+    }
+}); 
+
+{% endfor %}
+
+</script>
+
 {% endblock js %}
+
+<thead>
+                                    <tr>
+                                        <th>PSID</th>
+                                        <th>Name</th>
+                                        <th class="text-center">Server</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Update</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for client in clients %}
+                                    <tr>
+                                        <td><a href="#">{{ client.psid }}</a></td>
+                                        <td>{{ client.name }}</td>
+                                        <td class="text-center"><a href="#">{{ client.server }}</a></td>
+                                        <td class="text-center">
+                                            {% if client.status == "Error"%}
+                                            <span class="badge bg-danger">{{ client.status }}</span>
+                                            {% elif client.status == "Warning" %}
+                                            <span class="badge bg-warning">{{ client.status }}</span>
+                                            {% elif client.status == "Ok" %}
+                                            <span class="badge bg-success">{{ client.status }}</span>
+                                            {% else %}
+                                            <span class="badge bg-info">{{ client.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center"><a href="{% url 'monitor:updateLogs' client.psid %}"
+                                                class="btn btn-sm btn-primary">Read Log</a></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>

@@ -8,7 +8,7 @@
         <div class="navbar-nav">
             <a class="nav-item nav-link" href="/">Home</a>
             {% if request.user.username %}
-            <a class="nav-item nav-link" href="#">Tags</a>
+            <a class="nav-item nav-link" href="{% url 'logchecker:readlog' 1100 %}">Tags</a>
             <a class="nav-item nav-link" href="#">Reportes</a>
             {% endif %}
         </div>
@@ -18,12 +18,12 @@
                 <i class="nav-icon fas fa-user-tie"></i>
                 {{ request.user.username }}
             </span>
-            <a class="nav-item nav-link ml-4" href="#">
+            <a class="nav-item nav-link ml-4" href="{% url 'login:logout-view' %}">
                 <i class="fas fa-power-off"></i>
                 Salir
             </a>
             {% else %}
-            <a class="nav-item nav-link" href="{% url 'login:register' %}">Ingresar</a>
+            <a class="nav-item nav-link" href="{% url 'login:login-view' %}">Ingresar</a>
             {% endif %}
         </ul>
         </div>

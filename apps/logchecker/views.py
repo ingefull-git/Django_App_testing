@@ -1,92 +1,95 @@
 import datetime
 import json
-
+import re
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.core.serializers import serialize
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
+from django.db.models import Q, Sum, Count, Min, F, Case, Value, When
 from django.http import JsonResponse
-from django.shortcuts import (HttpResponse, HttpResponseRedirect,
-                              get_object_or_404, redirect, render)
+from django.shortcuts import (
+    HttpResponse,
+    HttpResponseRedirect,
+    get_object_or_404,
+    redirect,
+    render,
+)
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
 
-from apps.logchecker.models import SERVERS, STATUS, District, Log
+from apps.logchecker.models import District, Log, SERVERS, STATUS
 
 from .forms import DistrictModelForm
-from .testing import get_chart_values, read_log, update_servers
-
+from .testing import get_chart_values, read_log, update_servers, query_districts
 
 class HomeView(ListView):
     model = District
     template_name = "home.html"
     success_url = 'home'
-
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        return super(HomeView, self).dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        return self.model.objects.all()
+   
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        districts = District.objects.all()
+        if request.is_ajax():
+            if "refresh" in self.request.GET:
+                data = districts.values()
+                return JsonResponse(list(data), safe=False)
+        context = self.get_context_data()
+        servers = update_servers()
+        bars_values, bars_labels = query_districts('server', SERVERS)
+        histo_values, histo_labels = query_districts('created__day', range(1,31))
+        context['chart_labels'] = [label[0] for label in STATUS]
+        context['servers'] = servers
+        context['result'] = bars_values
+        context['histo_val'] = histo_values
+        context['histo_label'] = histo_labels
+        context['stacked_label'] = bars_labels
+        context['page_name'] = "APP-LogChecker"
+        context['page_title'] = "General Status Dashboard"
+        return render(request, 'home.html', context)
 
     def post(self, request, *args, **kwargs):
         data = {}
-        try:
-            if 'action' in request.POST:
-                peka = request.POST['action']
-                user = User.objects.get(username='rulo')
-                var = read_log(peka)
-                client = District(user_id=user.pk, name="Dist"+str(var), psid=222222)
-                client.save()
-            if 'test' in request.POST:
-                result = serialize('json', self.get_queryset())
-                res = json.loads(result)
-                res_f = []
-                for d in res:
-                    var_a = d['fields']
-                    var_a.update({'pk':d['pk']})
-                    res_f.append(var_a)
-                data = json.dumps(res_f)
-        except Exception as e:
-            data['error'] = str(e)
-        return HttpResponse(data, 'aplication/json')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        search = self.request.GET.get('search_')
+        districts = {}
+        page_obj = {}
+        # if "refresh" in request.POST:
         districts = District.objects.all()
-        if search:
-            districts = District.objects.filter(
-                Q(name__icontains=search) | 
-                Q(psid__icontains=search) | 
-                Q(status__icontains=search))
-        pagin = Paginator(districts, 2)
-        servers = update_servers()
-        chart_values = get_chart_values()
-        page_num = self.request.GET.get('page')
-        try:
-            page_obj = pagin.page(page_num)
-        except PageNotAnInteger:
-            page_obj = pagin.page(1)
-        except EmptyPage:
-            page_obj = pagin.page(pagin.num_pages)
-        context['chart_values'] = chart_values
-        context['chart_labels'] = [label[0] for label in STATUS]
-        context['page_obj'] = page_obj
-        context['servers'] = servers
-        context['page_name'] = "APP-LogChecker"
-        context['page_title'] = "General Status Dashboard"
-        return context
+        if 'searchfield' in request.POST:
+            search = request.POST['formData[1][value]']
+            if search:
+                districts = District.objects.filter(Q(psid_str__icontains=search) |
+                                        Q(name__icontains=search) | 
+                                        Q(status__icontains=search))
+            
+        pagin = Paginator(districts, 10)
+        page_obj = pagin.get_page(1)
+        data = [{'name':obj.name, 'psid':obj.psid, 'status':obj.status} for obj in page_obj]
+        return JsonResponse(list(data), safe=False)
+
+
+def pie_chart(request):
+    labels = []
+    data = []
+    if 'psid' in request.GET:
+        psid = request.GET.get("psid")
+        dist = District.objects.get(psid=psid)
+        Log.objects.create(client=dist, entity_name="Demographics", status="Undefined")
+    
+    chart_values = get_chart_values()
+    chart_lables = [label[0] for label in STATUS]
+    data = {'labels':chart_lables, 'values': chart_values}
+    return JsonResponse(data)
 
 
 def update_log_view(request, psid):
-    var = read_log(psid)
+    estado = read_log(psid)
     
     dist = District.objects.get(psid=psid)
-    Log.objects.create(client=dist, entity_name="Demographics", status="Ok")
+    # Log.objects.create(client=dist, entity_name="Demographics", status="Warning")
+    dist.status = estado
+    dist.save()
 
     return redirect('logchecker:home')
 
@@ -107,10 +110,11 @@ def create_view(request):
         form = DistrictModelForm(request.POST)
         if form.is_valid():
             form.save()
-            redirect('logchecker:home')
+            return redirect('logchecker:home')
         elif request.is_ajax():
             data = {}
-            data['error'] =[[field.label,error] for field in form for error in field.errors]
+            data['error'] =[[field.label, error] for field in form for error in field.errors]
+            print("Data: ", data)
             return JsonResponse(data, status=400)
     url_page = reverse('logchecker:district_new')
     form = DistrictModelForm(request.POST or None)

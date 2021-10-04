@@ -1,33 +1,47 @@
+from datetime import datetime as dt
 from . import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
-from django.db.models import Q
+from django.db.models import Q, Count
 
 
 def read_log(pk):
     print("Reading logs:", pk)
-    val = pk
-    return val
+    log_last = models.Log.objects.filter(client_id=pk).order_by('created').last()
+    date_last = log_last.created.date()
+    logs = models.Log.objects.filter(
+            Q(client_id=pk) & Q(created__date=date_last)).\
+                values('entity_id').annotate(
+                    error=Count('status', filter=Q(status='Error')),
+                    warning=Count('status', filter=Q(status='Warning')),
+                    undefined=Count('status', filter=Q(status='Undefined')),
+                    ok=Count('status', filter=Q(status='Ok'))).order_by('entity_id')
+    print(logs)
+    print(logs.query)
+    estado = ""
+    for entity in logs:
+        if entity['error']:
+            estado = "Error"
+        elif entity["warning"] and estado != "Error":
+            estado = "Warning"
+        elif entity["ok"] and estado != "Warning": 
+            estado = "Ok"
+        elif estado != "Error" and estado != "Warning" and estado != "Ok":
+            estado = "Undefined"
+    return estado
 
-@receiver(post_save, sender=models.Log)
+@receiver(post_save, sender=models.District)
 def check_status(sender, instance, created, **kwargs):
-    status_log = models.STATUS[3][0]
-    for status in models.STATUS:
-        logs = models.Log.objects.filter(Q(client=instance.client) & Q(status=status[0]))
-        if logs:
-            if status[0] == models.STATUS[0][0]:
-                status_log = status[0]
-            elif status[0] == models.STATUS[1][0]:
-                status_log = status[0]
-            elif status[0] == models.STATUS[2][0]:
-                status_log = status[0]
     if created:
-        instance.client.status = status_log
-        instance.client.save()
+        print("District Created: ", instance)
     if created == False:
-        instance.client.status = status_log
-        instance.client.save()
-
+        histoid = f'{dt.now().date()}_{instance}'
+        histoobj = models.ClientHistoric.objects.filter(histo=histoid).first()
+        if histoobj:
+            histoobj.status = instance.status
+            histoobj.save()
+        else:
+            models.ClientHistoric.objects.create(client=instance)
 
 def update_servers():
     server_dict = {}
@@ -48,3 +62,22 @@ def get_chart_values():
             val = int(round((cant*100/dist_total),0))
             chart_values.append(val)
     return chart_values
+
+def query_districts(item, iterator):
+    status = {}
+    status_label = []
+    result = {}
+    for var in iterator:
+        status[var]= models.District.objects.filter(Q(**{item:var})).aggregate(
+            error=Count('status', filter=Q(status='Error')),
+            warning=Count('status', filter=Q(status='Warning')),
+            undefined=Count('status', filter=Q(status='Undefined')),
+            ok=Count('status', filter=Q(status='Ok')))
+        for key, val in status[var].items():
+            if key not in result:
+                result[key] = [val]
+            else:
+                result[key].append(val)
+        status_label.append(var)
+    return result, status_label
+    

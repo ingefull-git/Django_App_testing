@@ -5,7 +5,9 @@
 <body class="hold-transition sidebar-mini layout-fixed">
    
         <!-- Header -->
-        {% include 'header.html' %}
+        {% if request.user.username %}
+            {% include 'header.html' %}
+        {% endif %}
         <!-- Sidebar -->
         {% include 'sidebar.html' %}
         <!-- Content -->
@@ -15,7 +17,9 @@
         {% endblock content %}
 
         <!-- Footer -->
-        {% include 'footer.html' %}
+        {% if request.user.username %}
+            {% include 'footer.html' %}
+        {% endif %}
     </div>
     <!-- Block javascript -->
     {% block javascript %}
