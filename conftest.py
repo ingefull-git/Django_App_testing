@@ -49,7 +49,7 @@ def distr_factory(db, new_user2):
         psid: int = None
         ):
         district = District.objects.create(
-            user_id = new_user2.id,
+            user_id = new_user2.psid,
             name = name,
             psid = psid
         )

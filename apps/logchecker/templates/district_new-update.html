@@ -1,0 +1,29 @@
+<form class="form-horizontal" method="POST" action="{{ url_page }}" id="myForm">
+    <div class="alert alert-danger alert-dismissable error_form_alert" style='display: none'>
+        <small>
+            <div class="error_form_text "></div>
+        </small>
+    </div>
+    {% csrf_token %}
+       {% for field in form %}
+            {% if district %}
+                {% if field.name != "psid" %}
+                    <label>{{ field.name }}</label>
+                    {{ field }}
+                {% else %}
+               
+                {% endif %}
+            {% else %}
+            <label>{{ field.name }}</label>
+            {{ field }}
+            {% endif %}
+       {% endfor %}
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmit">Guardar</button>
+    </div>
+</form>
+
+{% block script %}
+
+{% endblock script %}

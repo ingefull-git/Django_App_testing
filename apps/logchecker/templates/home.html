@@ -1,73 +1,305 @@
-{% extends "body.html" %}
+{% extends "generic_list.html" %}
 {% load static %}
-{% block head %}
-<link href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet" />
-<link href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}"
-    rel="stylesheet" />
-<script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
 
-{% block head_list %}
-
-{% endblock %}
-
-{% endblock %}
-
-{% block content %}
-<div class="container">
-    <div class="card card-primary mt-4">
-        <div class="card-header text-left bg-dark text-light pt-1 pb-0">
-            <h5>Districs Table</h5>
+{% block title %}
+<div class="row mt-4">
+    <div class="col-8 col-md-8">
+        <h2><strong>{{ page_title }}</strong></h2>
+    </div>
+    <div class="col-4 col-md-4 float-right">
+        <div class="d-flex justify-content-end">
+        <div class="col-2 d-flex justify-content-end">
+            <a href="#" onclick="modal_generic('{% url 'logchecker:district_update' 1111 %}')" class="btn btn-lg btn-primary">Update</a>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered" id="data">
-                <thead>
-                    <tr>
-                        <th>District</th>
-                        <th>PSID</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for dist in districs %}
-                    <tr class="text-center">
-                        <td class="text-left">{{ dist.name }}</td>
-                        <td class="text-center">{{ dist.psid }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="col-2 d-flex justify-content-end">
+            <a href="#" onclick="modal_generic('{% url 'logchecker:district_new' %}')" class="btn btn-lg btn-primary">New</a>
         </div>
-        <!-- <div class="card-footer">
-
-        </div> -->
+        </div>
     </div>
 </div>
+{% endblock title %}
 
-<div aria-hidden="true" aria-labelledby="modalGeneric" class="modal fade" id="modalGeneric" role="dialog" tabindex="-1">
+{% block chart %}
+    <canvas id="myChart" data-url="{% url 'logchecker:pie_chart' %}" width="350" height="350"></canvas>
+{% endblock chart %}
+
+{% block cardheader %}
+<div class="row">
+    <div class="col-sm-6">
+    </div>
+    <div class="col-sm-6">
+        <form action="{% url 'logchecker:home' %}" class="form-inline" id="searchform">
+        {% csrf_token %}
+            <div class="row pt-3 pb-3 pe-3 ps-3">
+                <div class="input-group">
+                    <button class="btn btn-outline-secondary input-group-text" type="submit">Search</button>
+                    <input type="search" class="form-control" id="id_search" name="id_search" placeholder="Search field...">
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
+{% endblock cardheader %}
 
-{% endblock %}
+{% block thead %}
+<thead>
+    <tr>
+        <th>#</th>
+        <th>District</th>
+        <th>PSID</th>
+        <th>Status</th>
+        <th>Update</th>
+    </tr>
+</thead>
+{% endblock thead %}
 
-{% block javascript %}
+{% block tbody %}
+<tbody id="tablebody" name="tablebody">
+   
+</tbody>
+{% endblock tbody %}
 
-<script type="application/javascript">
-    function modal_generic(url) {
-        $('#modalGeneric').load(url, function () {
-            $(this).modal('show');
-        });
-    };
+{% block card_footer %}
+<div class="d-flex justify-content-end">
+    <div class="btn-group" role="group">
+        {% if page_obj.has_previous %}
+        <a href="?page=1" class="btn btn-outline-secondary btn-sm btn_paginate">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}"
+            class="btn btn-outline-secondary btn-sm btn_paginate">&laquo;</a>
+        {% else %}
+        <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">First</a>
+        <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">&laquo;</a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <a href="?page={{ num }}" class="btn btn-outline-primary btn-sm btn_paginate"><strong>{{ num }}</strong></a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}" class="btn btn-outline-secondary btn-sm btn_paginate">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}"
+            class="btn btn-outline-secondary btn-sm btn_paginate">&raquo;</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}"
+            class="btn btn-outline-secondary btn-sm btn_paginate">Last</a>
+        {% else %}
+        <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">&raquo;</a>
+        <a href="#" class="btn btn-outline-secondary btn-sm btn_paginate disabled">Last</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock card_footer %}
+
+{% block chart-stacked %}
+    <canvas id="stackedChart" data-url="{% url 'logchecker:pie_chart' %}" width="350" height="350"></canvas>
+    <canvas id="histoChart" data-url="{% url 'logchecker:pie_chart' %}" width="350" height="350"></canvas>
+{% endblock chart-stacked %}
+
+{% block js %}
+
+<script src="{% static 'js/scripts.js' %}"></script>
+<script>
+    {% for res in histo_val.items %}
+    {% if res.0 == "error" %}
+        var labelError = "{{ res.0 | safe}}";
+        var dataError = {{ res.1 | safe}};
+    {% elif res.0 == "warning" %}
+        var labelWarning = "{{ res.0 | safe}}";
+        var dataWarning = {{ res.1 | safe}};
+    {% elif res.0 == "undefined" %}
+        var labelUndefined = "{{ res.0 | safe}}";
+        var dataUndefined = {{ res.1 | safe}};
+    {% elif res.0 == "ok" %}
+        var labelOk = "{{ res.0 | safe}}";
+        var dataOk = {{ res.1 | safe}};
+    {% endif %}
+    {% endfor %}
+    var ctx = document.getElementById('histoChart').getContext('2d');
+var histoChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ histo_label | safe }},
+        datasets: [
+            {label: labelOk, data: dataOk, borderColor: 'green', backgroundColor: 'lightGreen', fill: true,},
+            {label: labelUndefined, data: dataUndefined, borderColor: 'blue', backgroundColor: 'lightBlue', fill: false,},
+            {label: labelWarning, data: dataWarning, borderColor: 'orange', backgroundColor: 'lightYellow', fill: false,},
+            {label: labelError, data: dataError, borderColor: 'red', backgroundColor: 'pink', fill: true,},
+            ]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
 </script>
-<script type="application/javascript">
-    $(document).ready( function() {
-        $('#data').dataTable({
-            responsive: true,
-            autoWidth: false,
-            ordering: true,
-            "pageLength": 8,
-            "bDestroy": true
-        });
-    });
+<script>
+    {% for res in result.items %}
+    {% if res.0 == "error" %}
+        var labelError = "{{ res.0 | safe}}";
+        var dataError = {{ res.1 | safe}};
+    {% elif res.0 == "warning" %}
+        var labelWarning = "{{ res.0 | safe}}";
+        var dataWarning = {{ res.1 | safe}};
+    {% elif res.0 == "undefined" %}
+        var labelUndefined = "{{ res.0 | safe}}";
+        var dataUndefined = {{ res.1 | safe}};
+    {% elif res.0 == "ok" %}
+        var labelOk = "{{ res.0 | safe}}";
+        var dataOk = {{ res.1 | safe}};
+    {% endif %}
+    {% endfor %}
+    var ctx = document.getElementById('stackedChart').getContext('2d');
+var stackedChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ stacked_label | safe }},
+        datasets: [{
+            label: labelError,
+            data: dataError,
+            backgroundColor: [
+                'orange',
+                'orange',
+                'orange',
+                'orange',
+                'orange',
+                'orange'
+            ],
+            
+            borderWidth: 1,
+        },
+        {
+            label: labelWarning,
+            data: dataWarning,
+            backgroundColor: [
+                'yellow',
+                'yellow',
+                'yellow',
+                'yellow',
+                'yellow',
+                'yellow'
+            ],
+           
+            borderWidth: 1,
+        },
+        {
+            label: labelUndefined,
+            data: dataUndefined,
+            backgroundColor: [
+                'lightblue',
+                'lightblue',
+                'lightblue',
+                'lightblue',
+                'lightblue',
+                'lightblue'
+            ],
+           
+            borderWidth: 1,
+        },
+        {
+            label: labelOk,
+            data: dataOk,
+            backgroundColor: [
+                'lightgreen',
+                'lightgreen',
+                'lightgreen',
+                'lightgreen',
+                'lightgreen',
+                'lightgreen'
+            ],
+           
+            borderWidth: 1,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        scales: {
+            x: {
+                stacked: true
+            },
+            y: {
+                stacked: true
+            }
+        }
+    }
+});
 </script>
-{% endblock %}
+
+
+<script>
+{% for key,val in servers.items %}
+
+new Chart(document.getElementById("server{{key}}").getContext("2d"), {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels | safe }},
+        datasets: [{
+            backgroundColor: [
+                '#FF474B',
+                '#FEE043',
+                '#649CB8',
+                '#58AB51',
+            ],
+            data: {{ val | safe }},
+        }, ]
+    },
+    options: {
+        plugins: {
+            legend: {
+                display: false,
+                position: 'top',
+            },
+
+        },
+        scales: {
+            x: {
+                display: false
+            }
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+    }
+}); 
+
+{% endfor %}
+
+</script>
+
+{% endblock js %}
+
+<thead>
+                                    <tr>
+                                        <th>PSID</th>
+                                        <th>Name</th>
+                                        <th class="text-center">Server</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Update</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for client in clients %}
+                                    <tr>
+                                        <td><a href="#">{{ client.psid }}</a></td>
+                                        <td>{{ client.name }}</td>
+                                        <td class="text-center"><a href="#">{{ client.server }}</a></td>
+                                        <td class="text-center">
+                                            {% if client.status == "Error"%}
+                                            <span class="badge bg-danger">{{ client.status }}</span>
+                                            {% elif client.status == "Warning" %}
+                                            <span class="badge bg-warning">{{ client.status }}</span>
+                                            {% elif client.status == "Ok" %}
+                                            <span class="badge bg-success">{{ client.status }}</span>
+                                            {% else %}
+                                            <span class="badge bg-info">{{ client.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center"><a href="{% url 'monitor:updateLogs' client.psid %}"
+                                                class="btn btn-sm btn-primary">Read Log</a></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>

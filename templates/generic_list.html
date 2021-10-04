@@ -1,88 +1,137 @@
-{% extends 'body.html' %}
+{% extends "body.html" %}
 {% load static %}
 {% block head %}
-<link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" />
-<link rel="stylesheet"
-    href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}" />
-<script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
-<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
 
-{% block head_list %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.min.css">
 
-{% endblock %}
+<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
 
-{% endblock %}
+<script type="text/javascript" language="javascript"
+    src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript"
+    src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.min.js"></script>
 
-{% block content %}
-<div class="card card-primary">
-    <div class="card-header text-right">
-        {% if request.user.username%}
-        {% block buttons_list %}
+{% endblock head %}
 
-        {% endblock %}
-        {% endif %}
-    </div>
-    <div class="card-body">
-        <table class="table table-bordered" id="data">
-            <thead>
-                {% block columns %}
 
-                {% endblock %}
-            </thead>
-            <tbody>
-                {% block rows %}
 
-                {% endblock %}
-            </tbody>
-        </table>
-    </div>
-    <div class="card-footer">
-       
+{% block content %}<div class="container-fluid">
+{% block title %}
+{% endblock title %}
+    <div class="row">
+        <div class="col-md-5">
+            <div class="row">
+                <div class="col">
+                    <div class="card card-primary mt-4">
+                        <div class="card-header text-left bg-secondary text-light pt-1 pb-0">
+                            <h5>Districs Table</h5>
+                        </div>
+                        <div class="card-body card_chart">
+                            {% block chart %}
+                            {% endblock chart %}
+                        </div>
+                        <div class="card-footer">
+                            <p>This is footer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="card card-primary mt-4">
+                        <div class="card-header text-left bg-info text-light pt-1 pb-0">
+                            <h5>Districs Table</h5>
+                        </div>
+                        <div class="card-body">
+                            {% comment %} <a href="{% url 'logchecker:readlog' 1111 %}">Read Log</a> {% endcomment %}
+                            
+                            {% block chart-stacked %}
+
+                            {% endblock chart-stacked %}
+                        </div>
+                        <div class="card-footer">
+                            <p>This is footer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="row">
+                <div class="col-12">
+                    <div class="row row-cols-1 row-cols-md-4">
+                        {% for key, val in servers.items %}
+                        <div class="col ml-0 mr-0 mt-0">
+                            <div class="card mt-4">
+                                <div class="card-header bg-secondary text-light">
+                                    Server# {{ key }}
+                                </div>
+                                <div class="card-body server_modal">
+                                    <div class="row">
+                                        <div class="col-6 mt-0">
+                                            <small>Status</small>
+                                        </div>
+                                        <div class="col-6 mt-0 d-flex justify-content-end">
+                                            <small class="text-right"># Districts</small>
+                                        </div>
+                                    </div>
+                                    <span class="form-control server_span">
+                                        <canvas id="server{{ key }}" width="100" height="100"></canvas>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="card card-primary mt-4">
+                        <div class="card-header text-light bg-secondary pt-1 pb-0">
+                            <div class="col-sm-6">
+                                <h5>Districs Table</h5>
+                            </div>
+                        </div>
+                        <div class="card-body h-100">
+                            <div class="card">
+                            <table class="table table-sm table-hover table-responsive table_districts" id="data">
+                                <div class="card-header">
+                                {% block cardheader %}
+                                {% endblock cardheader %}
+                                        {% block thead %}
+                                        {% endblock thead %}
+                                </div>
+                                </table>
+                                <div class="card-body card_table">
+                                    <table class="table table-sm table-hover table-responsive table_districts" id="data">
+                                        {% block tbody %}
+                                        {% endblock tbody %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% block card_footer %}
+                            {% endblock card_footer %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
     </div>
 </div>
-<div class="modal fade" id="modalGeneric" tabindex="-1" role="dialog" aria-labelledby="modalGeneric" aria-hidden="true">
+
+<div class="modal fade" aria-hidden="true" aria-labelledby="modalGeneric" id="modalGeneric" role="dialog" tabindex="-1">
 </div>
 
-{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1/dist/chart.min.js"></script>
 
-{% block javascript %}
 
-<script type="application/javascript">
-    function modal_generic(url) {
-        $('#modalGeneric').load(url, function () {
-            $(this).modal('show');
-        });
-    };
-</script>
-<script type="application/javascript">
-    $(function () {
-        $('#data').DataTable({
-            responsive: true,
-            autoWidth: false,
-            ordering: true,
-            "pageLength": 8,
-            "order": [[0, 'desc'],],
-        });
-    });
 
-    /*$('.btnTest').on('click', function () {
-        var parameters = $(this).serializeArray();
-        console.log("Parametros: ", parameters);
-        alert("Parametros: ", parameters)
-        $.ajax({
-            url: '{% url 'home' %}',
-            type: 'POST',
-            data: { id: 11 },
-            dataType: 'json'
-        }).done(function (data) {
-            console.log(data);
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert(textStatus + ': ' + errorThrown);
-        }).always(function (data) {
 
-        });
-    });*/
-</script>
-{% endblock %}
+{% block js %}
+{% endblock js %}
+
+{% endblock content %}
